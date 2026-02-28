@@ -250,9 +250,9 @@ button:hover{
    ✅ KILL HISTORY PANEL
    ========================= */
 #historyPanel{
-  position:fixed;
-  left:20px;
-  top:380px;
+  position:fixed;     /* stays on screen */
+  left:20px;         /* move right from left panel */
+  top:380px;          /* move down */
   width:320px;
   max-height:460px;
   overflow-y:auto;
@@ -264,6 +264,7 @@ button:hover{
   font-family:'Orbitron', sans-serif;
   z-index:9999;
 }
+
 
 #historyPanel h3{
  text-align:center;
@@ -391,7 +392,7 @@ button:hover{
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  /* ✅ SERVER TIME SYNC */
+  /* ✅ SERVER TIME SYNC (fix +12 sec issues) */
   let serverOffset = 0;
   let serverReady = false;
 
@@ -399,23 +400,14 @@ button:hover{
     serverOffset = snap.val() || 0;
     serverReady = true;
   });
-
-  // ✅ FAILSAFE: if serverTimeOffset is slow/broken, allow local time after 2 seconds
-  setTimeout(() => {
-    if (!serverReady) {
-      console.warn("Server time sync failed/slow, using local time");
-      serverOffset = 0;
-      serverReady = true;
-    }
-  }, 2000);
 </script>
 
 <script>
 /* =========================
    ✅ SETTINGS
    ========================= */
-const HISTORY_LIMIT = 200;
-const ADMIN_PIN = "1234";
+const HISTORY_LIMIT = 200;     // show last 200 logs
+const ADMIN_PIN = "1234";      // change this
 
 let inputLock=false;
 document.addEventListener("focusin",e=>{if(e.target.type==="datetime-local") inputLock=true;});
@@ -566,6 +558,7 @@ db.ref("history").limitToLast(HISTORY_LIMIT).on("value", snapshot=>{
    ✅ TIMER STORAGE (FIREBASE)
    ========================= */
 let firebaseBosses = {};
+
 db.ref("bosses").on("value", snapshot => {
   firebaseBosses = snapshot.val() || {};
 });
@@ -583,7 +576,9 @@ function setNext(id,h,k){
    ✅ BUTTON ACTIONS
    ========================= */
 function now(id,h){
+  // prevent clicking before server time is ready
   if(!serverReady){
+    // small message only (no breaking)
     const pinError = document.getElementById("pinError");
     if(pinError){
       pinError.style.color = "#ffd700";
@@ -610,16 +605,7 @@ function now(id,h){
 function manual(id,h){
   const v=document.getElementById(id+"-input").value;
   if(!v) return alert("Enter time");
-
-  const selected = new Date(v);
-  const nowServer = Date.now() + serverOffset;
-
-  // ✅ prevent "past time" (midnight issues)
-  if (selected.getTime() < nowServer) {
-    return alert("❌ Selected time is already past");
-  }
-
-  setNext(id,h,selected);
+  setNext(id,h,new Date(v));
 }
 
 function resetAll(){
@@ -630,21 +616,8 @@ function resetAll(){
 /* =========================
    ✅ MAIN UPDATE LOOP
    ========================= */
-function resetNextPanel(){
-  document.getElementById("nextBossName").textContent = "---";
-  document.getElementById("nextBossTimer").textContent = "--:--:--";
-  document.getElementById("nextBossTime").textContent = "---";
-  document.getElementById("nextBossTimer").classList.remove("danger");
-}
-
 function update(){
  if(inputLock) return;
-
- // ✅ reset next panel ONCE per tick if no data
- if (Object.keys(firebaseBosses).length === 0) {
-   resetNextPanel();
- }
-
  let soonest=null,soonId=null,sortData=[];
 
  bosses.forEach(b=>{
@@ -654,6 +627,13 @@ function update(){
   const card=document.getElementById(b.id+"-card");
   card.classList.remove("next");
 
+  if (Object.keys(firebaseBosses).length === 0) {
+    document.getElementById("nextBossName").textContent = "---";
+    document.getElementById("nextBossTimer").textContent = "--:--:--";
+    document.getElementById("nextBossTime").textContent = "---";
+    document.getElementById("nextBossTimer").classList.remove("danger");
+  }
+
   if (!t) {
     timer.textContent = "--:--:--";
     next.textContent = "Next Spawn: --";
@@ -661,6 +641,7 @@ function update(){
     return;
   }
 
+  // ✅ server-time countdown
   const nowServer = Date.now() + serverOffset;
   const d = t - nowServer;
 
@@ -683,8 +664,8 @@ function update(){
   if(soonest===null||d<soonest){soonest=d;soonId=b.id;}
 
   const hh=String(Math.floor(d/3600000)).padStart(2,"0");
-  const mm=String(Math.floor((d%3600000)/60000)).padStart(2,"0");
-  const ss=String(Math.floor((d%60000)/1000)).padStart(2,"0");
+  const mm=String(Math.floor(d%3600000/60000)).padStart(2,"0");
+  const ss=String(Math.floor(d%60000/1000)).padStart(2,"0");
   timer.textContent=`${hh}:${mm}:${ss}`;
   next.textContent="Next: "+new Date(t).toLocaleString();
  });
@@ -697,7 +678,6 @@ function update(){
  if(soonId){
   document.getElementById(soonId+"-card").classList.add("next");
   const b=bosses.find(x=>x.id===soonId);
-
   document.getElementById("nextBossName").textContent=b.name;
   document.getElementById("nextBossTimer").textContent=document.getElementById(soonId+"-timer").textContent;
 
@@ -726,8 +706,6 @@ function update(){
 }
 
 setInterval(update,1000);
-
-
 </script>
 
 </body>
