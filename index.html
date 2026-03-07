@@ -445,16 +445,11 @@ const nextBossTimer=document.getElementById("nextBossTimer");
 let autoSort=true;
 let alarmOn=true;
 let alerted={};
-let warnedTenMin={};
 let lastBeepSecond=null;
 
 function speak(text){
  try{
-   window.speechSynthesis.cancel();
    const u=new SpeechSynthesisUtterance(text);
-   u.rate = 1;
-   u.pitch = 1;
-   u.volume = 1;
    speechSynthesis.speak(u);
  }catch(e){}
 }
@@ -575,8 +570,6 @@ function setNext(id,h,k){
   const nextTime = k.getTime() + h * 3600000;
   db.ref("bosses/" + id).set(nextTime);
   alerted[id] = false;
-  warnedTenMin[id] = false;
-  warnedTenMin[id] = false;
 }
 
 /* =========================
@@ -600,7 +593,6 @@ function now(id,h){
 
   db.ref("bosses/" + id).set(nextTime);
   alerted[id] = false;
-  warnedTenMin[id] = false;
 
   const boss = bosses.find(b => b.id === id);
   db.ref("history").push({
@@ -618,9 +610,6 @@ function manual(id,h){
 
 function resetAll(){
   if(!confirm("Reset ALL timers?")) return;
-  alerted = {};
-  warnedTenMin = {};
-  lastBeepSecond = null;
   db.ref("bosses").remove();
 }
 
@@ -659,7 +648,6 @@ function update(){
   if(d<=0){
    timer.textContent="SPAWNED!";
    next.textContent="NOW";
-   warnedTenMin[b.id] = false;
    if(!alerted[b.id]){
      if(alarmOn){
        sound.currentTime=0;
@@ -670,21 +658,6 @@ function update(){
    }
    sortData.push({id:b.id,time:0});
    return;
-  }
-
-  if(d<=10*60*1000 && d>9*60*1000 && !warnedTenMin[b.id]){
-    if(alarmOn){
-      sound.currentTime=0;
-      sound.play().catch(()=>{});
-      setTimeout(()=>{
-        speak(b.name + " will spawn in 10 minutes");
-      }, 250);
-    }
-    warnedTenMin[b.id] = true;
-  }
-
-  if(d>10*60*1000){
-    warnedTenMin[b.id] = false;
   }
 
   sortData.push({id:b.id,time:d});
