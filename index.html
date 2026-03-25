@@ -142,6 +142,12 @@ h1{
  box-shadow:0 0 30px rgba(0,255,156,0.6);
 }
 
+.card{
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .card h2{
  color:#fff;
  font-size:26px;
@@ -149,6 +155,35 @@ h1{
  font-family:'Orbitron', sans-serif;
 }
 
+.card{
+ background:#111;
+ border:2px solid var(--gold);
+ border-radius:16px;
+ padding:18px;
+ width:300px;
+ text-align:center;
+ transition:.25s;
+ position:relative;
+ box-shadow:0 0 15px rgba(0,0,0,.6);
+ overflow:hidden;
+
+ background-size:cover;
+ background-position:center;
+ background-repeat:no-repeat;
+}
+
+.card::before{
+ content:"";
+ position:absolute;
+ inset:0;
+ background:rgba(0,0,0,0.55);
+ z-index:0;
+}
+
+.card > *{
+ position:relative;
+ z-index:1;
+}
 .timer{
  font-size:44px;
  font-weight:900;
@@ -468,6 +503,44 @@ bosses.forEach(b=>{
  const card=document.createElement("div");
  card.className="card";
  card.id=b.id+"-card";
+
+ if(b.name.includes("EF")){
+   card.style.backgroundImage = "url('ef-ai.png')";
+ }
+ if(b.name.includes("CAMPUS")){
+   card.style.backgroundImage = "url('ds-ai.png')";
+ }
+if(b.name.includes("CH-0 MP HOLE")){
+   card.style.backgroundImage = "url('ds-ai.png')";
+ }
+if(b.name.includes("CH-0 PH HOLE")){
+   card.style.backgroundImage = "url('ds-ai.png')";
+ }
+if(b.name.includes("CH-1 PH HOLE")){
+   card.style.backgroundImage = "url('ds-ai.png')";
+ }
+if(b.name.includes("CH-1 MP HOLE")){
+   card.style.backgroundImage = "url('ds-ai.png')";
+ }
+if(b.name.includes("CH-1 DARK SWORDSMAN")){
+   card.style.backgroundImage = "url('dark-swordsman ai.png')";
+ }
+if(b.name.includes("CH-0 DARK SWORDSMAN")){
+   card.style.backgroundImage = "url('dark-swordsman ai.png')";
+ }
+if(b.name.includes("CH-0 NINJA KNIFE")){
+   card.style.backgroundImage = "url('ninja knife-ai.png')";
+ }
+ if(b.name.includes("CH-1 NINJA KNIFE")){
+   card.style.backgroundImage = "url('ninja knife-ai.png')";
+ }
+ if(b.name.includes("CH-1 CRUEL JUPITER")){
+   card.style.backgroundImage = "url('cruel jupiter-ai.png')";
+ }
+ if(b.name.includes("CH-0 CRUEL JUPITER")){
+   card.style.backgroundImage = "url('cruel jupiter-ai.png')";
+ }
+
  card.innerHTML=`
   <h2>${b.name}</h2>
   <div class="timer" id="${b.id}-timer">--:--:--</div>
@@ -483,7 +556,6 @@ bosses.forEach(b=>{
  `;
  container.appendChild(card);
 });
-
 /* =========================
    ✅ TOP BUTTONS
    ========================= */
